@@ -1,0 +1,12 @@
+FUNCTION bedrock(Model,nodenumber,x) RESULT(bed) 
+USE DefUtils
+IMPLICIT NONE
+REAL(KIND=dp) :: x, y, bed, Model
+REAL(KIND=dp) :: x0
+INTEGER :: nodenumber
+
+x0  = 10**⁻7
+bed = x*x0
+
+
+END FUNCTION bedrock

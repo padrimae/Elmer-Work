@@ -1,0 +1,21 @@
+FUNCTION channel(Model,nodenumber,x) RESULT(chan_circ) 
+USE DefUtils
+IMPLICIT NONE
+REAL(KIND=dp) :: x, y, chan_circ, Model
+REAL(KIND=dp) :: xmax, r, x0, xn
+INTEGER :: nodenumber
+
+xmax = 10.0_dp
+r    = 1_dp
+x0   = xmax/2-r
+xn   = xmax/2+r
+
+
+  IF ((x>x0) .AND. (x<xn)) THEN
+   chan_circ = sqrt(r**2-(x-x0-r)**2)
+  ELSE
+   chan_circ = 0.0_dp
+  ENDIF
+print *, chan_circ
+
+END FUNCTION channel

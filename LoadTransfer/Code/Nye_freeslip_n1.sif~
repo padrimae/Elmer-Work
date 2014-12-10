@@ -130,24 +130,25 @@ Solver 1
    Exec Solver          = Always
    Equation             = "Navier-Stokes"
    Flow Model           = Stokes
+   Stabilize 		= Logical True
    Optimize Bandwidth   = Logical True
 
    Linear System Solver                     = Direct
    Linear System Direct Method              = "umfpack"
    Linear System Max Iterations             = 1000
-   Linear System Convergence Tolerance      = 1.0E-06
-   Linear System Abort Not Converged        = False
-   Linear System Preconditioning            = "ILU1"
+   Linear System Convergence Tolerance      = 1.0E-08
+   Linear System Preconditioning            = "ILU0"
    Linear System Residual Output            = 1
 
-   Steady State Convergence Tolerance       = 1.0E-02
-   Stabilization Method                     = Stabilized
+   Steady State Convergence Tolerance       = 1.0E-12
+   #Stabilization Method                     = Stabilized
 
-   Nonlinear System Convergence Tolerance   = 1.0E-04
+   Nonlinear System Convergence Tolerance   = 1.0E-07
    Nonlinear System Max Iterations          = 200
-   Nonlinear System Newton After Iterations = 200
-   Nonlinear System Newton After Tolerance  =  1.0E-03
-   Nonlinear System Relaxation Factor       = $2/3
+   Nonlinear System Newton After Iterations = 10
+   Nonlinear System Newton After Tolerance  = 1.0E-03
+   Nonlinear System Relaxation Factor       = 1.0
+   Nonlinear System Reset Newton 			= Logical True
 End
 
 Solver 2
@@ -164,9 +165,14 @@ Solver 2
    Exported Variable 1 DOFs = 4
    Cauchy                   = Logical True
 
-
-   Linear System Solver        = Direct         
-   Linear System Direct Method = umfpack
+   Linear System Solver                     = Direct
+   Linear System Iterative Method           = "umfpack"
+   Linear System Preconditioning            = "ILU0"
+   Linear System Convergence Tolerance      = 1.0E-08
+   Linear System Max Iterations             = 1000
+   Linear System Residual Output            = 1
+   #Linear System Solver        = Direct         
+   #Linear System Direct Method = "Mumps"
 
 !   Exported Variable 1         = Stress[Sxx:1 Syy:1 Szz:1 Sxy:1]
 !   Exported Variable 1 DOFs    = 4

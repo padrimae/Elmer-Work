@@ -3,10 +3,10 @@ echo on
  
 
 ! Time, Mesh, Filename Parameters
-$dt         = 1.0/(365.25*24*60*60)
-$MaxIter    = "120" !5days in hours !"432" !144 - 288 - 432
-$Fname       = "channel_ld_h45_a1_c3"
-$OutputFname= "_""trans_freeslip_n3_pwctt""_"
+$dt          = 1.0/(365.25*24*60*60)
+$MaxIter     = "120" !5days in hours !"432" !144 - 288 - 432
+$Fname       = "channel_ld_h60_r1_c3"
+$OutputFname = "trans_freeslip_n3_pwctt"
 
 ! Constants
 $yearinsec  = 365.25*24*60*60
@@ -61,8 +61,7 @@ Simulation
   Steady State Max Iterations     = 1
 
   Output Intervals                = 1
-  Output File                     = "trans$OutputFname$.result"
-  Post File                       = "trans$OutputFname$.ep"  
+  Output File                     = "$OutputFname$.result"
 
   Max Output Level                = 3 
 End
@@ -171,24 +170,25 @@ Solver 1
    Exec Solver          = Always
    Equation             = "Navier-Stokes"
    Flow Model           = Stokes
+   Stabilize 		= Logical True
    Optimize Bandwidth   = Logical True
 
    Linear System Solver                     = Direct
    Linear System Direct Method              = "umfpack"
    Linear System Max Iterations             = 1000
-   Linear System Convergence Tolerance      = 1.0E-06
-   Linear System Abort Not Converged        = False
-   Linear System Preconditioning            = "ILU1"
+   Linear System Convergence Tolerance      = 1.0E-08
+   Linear System Preconditioning            = "ILU0"
    Linear System Residual Output            = 1
 
-   Steady State Convergence Tolerance       = 1.0E-06
-   Stabilization Method                     = Stabilized
+   Steady State Convergence Tolerance       = 1.0E-12
+   #Stabilization Method                     = Stabilized
 
-   Nonlinear System Convergence Tolerance   = 1.0E-05
+   Nonlinear System Convergence Tolerance   = 1.0E-07
    Nonlinear System Max Iterations          = 200
-   Nonlinear System Newton After Iterations = 200
-   Nonlinear System Newton After Tolerance  =  1.0E-03
-   Nonlinear System Relaxation Factor       = $2/3
+   Nonlinear System Newton After Iterations = 10
+   Nonlinear System Newton After Tolerance  = 1.0E-03
+   Nonlinear System Relaxation Factor       = 1.0
+   Nonlinear System Reset Newton 			= Logical True
 End
 
 
@@ -249,9 +249,15 @@ Solver 4
    Variable DOFs     	    = 1
    Exported Variable 1 	    = "Stress"
    Exported Variable 1 DOFs = 4
+   Cauchy                   = Logical True
 
-   Linear System Solver        = Direct         
-   Linear System Direct Method = umfpack
+   Linear System Solver                     = Direct
+   Linear System Iterative Method           = "umfpack"
+   Linear System Preconditioning            = "ILU0"
+   Linear System Convergence Tolerance      = 1.0E-08
+   Linear System Max Iterations             = 1000
+   Linear System Residual Output            = 1
+
 
 !   Exported Variable 1         = Stress[Sxx:1 Syy:1 Szz:1 Sxy:1]
 !   Exported Variable 1 DOFs    = 4
@@ -263,7 +269,7 @@ Solver 5
    Equation          = SaveLine
    Procedure         = File "SaveData" "SaveLine"
 
-   Filename          = "$Fname$/surf_trans$OutputFname$_0001.dat"
+   Filename          = "$Fname$/$OutputFname$_surf_0001.dat"
    File Append       = Logical True
 End
 
@@ -273,7 +279,7 @@ Solver 6
    Equation          = "result output"
    Procedure         = File "ResultOutputSolve" "ResultOutputSolver"
 
-   Output File Name  = "trans$OutputFname$_"
+   Output File Name  = "$OutputFname$_"
    Output Format     = vtu
    Save Geometry Ids = Logical True
 End
@@ -327,6 +333,9 @@ Boundary Condition 2
   Mesh Update 1        = Real 0.0
   Mesh Update 2        = Variable RefZs,  Zs
      Real MATC "tx(1) - tx(0)"
+
+ Slip Coefficient 1 = Variable Coordinate 2
+     Real MATC "(tx<10.0E-9)*100"
 
   Velocity 2           = 0
   Velocity 2 Condition = Variable Coordinate 2

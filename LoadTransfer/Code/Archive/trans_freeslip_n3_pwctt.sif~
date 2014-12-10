@@ -2,9 +2,11 @@ check keywords warn
 echo on
  
 
-! Mesh, Output Filename
-$Fname       = "channel_nye"
-$OutputFname= "_""Nye_freeslip_n1""_"
+! Time, Mesh, Filename Parameters
+$dt         = 1.0/(365.25*24)
+$MaxIter    = "120" !5days in hours !"432" !144 - 288 - 432
+$Fname       = "channel_ld_h45_a1_c3"
+$OutputFname= "_""trans_freeslip_n3_pwctt""_"
 
 ! Constants
 $yearinsec  = 365.25*24*60*60
@@ -17,9 +19,17 @@ $gravity    = -9.81*yearinsec^2
 $angle 	    = 0.0*2.0*pi/360.0
 
 ! Model Parameters
-$WaterPressure = 0.0  ! MPa
-$OverburdenPressure = -1.8  
+!$WaterPressure = -1.8  ! MPa
+$OverburdenPressure = -1.4  
 $UpperVelocity = 0.0 ! m/a
+
+$ function Pwater(X) {\
+ {if(X(0)>0.0001)\
+         { _Pwater = -1.8}\
+	 else\
+	 { _Pwater = 0.0}}\
+}
+
 
 
 Header
@@ -39,16 +49,20 @@ End
 
 Simulation
   Coordinate System               = Cartesian 2D
-  Simulation Type                 = Steady
+  Simulation Type                 = Transient
+  Initialize Dirichlet Conditions = Logical False
 
-!  Initialize Dirichlet Conditions = Logical True
+  Timestepping Method             = "bdf"
+  BDF Order                       = 1
+  Timestep Intervals              = $MaxIter
+  Timestep Sizes                  = $dt
 
   Steady State Min Iterations     = 1
   Steady State Max Iterations     = 1
 
   Output Intervals                = 1
-  Output File                     = "$OutputFname$.result"
-#  Post File                       = "$OutputFname$.ep"  
+  Output File                     = "trans$OutputFname$.result"
+  Post File                       = "trans$OutputFname$.ep"  
 
   Max Output Level                = 3 
 End
@@ -67,6 +81,15 @@ Body 1
 End
 
 
+ !Bedrock
+Body 2
+  Equation          = 2
+  Body Force        = 2
+  Material          = 1
+  Initial Condition = 2
+End
+
+
 !----------------------------------------------!
 !---------------Initial-Condition--------------! 
 !----------------------------------------------!
@@ -75,8 +98,16 @@ Initial Condition 1
   Pressure   = Real 0.0 
   Velocity 1 = Real 0.0 
   Velocity 2 = Real 0.0 
-  Mesh Update 1 = Real 0.0
-  Mesh Update 2 = real 0.0
+  Mesh Update 1   = Real 0.0
+  Mesh Update 2   = Real 0.0
+!  Mesh Velocity 1 = Real 0.0
+!  Mesh Velocity 2 = Real 0.0
+!  Mesh Velocity 3 = Real 0.0
+End
+
+Initial Condition 2
+   Zs	  	  = Equals Coordinate 2
+   RefZs 	  = Equals Coordinate 2
 End
 
 
@@ -90,6 +121,11 @@ Body Force 1
 End
 
 
+Body Force 2
+   Zs Accumulation Flux 1 = Real 0.0e0
+   Zs Accumulation Flux 2 = Real 0.0e0 
+End
+
 !----------------------------------------------!
 !-------------------Material-------------------! 
 !----------------------------------------------!
@@ -101,7 +137,7 @@ Material 1
 !Viscosity stuff
   Viscosity Model             = String "Glen"
   Viscosity                   = Real 1.0 ! Dummy to avoid warning
-  Glen Exponent               = Real 1.0
+  Glen Exponent               = Real 3.0
 
 !Paterson value in MPa^-3a^-1
   Limit Temperature           = Real -10.0
@@ -118,6 +154,11 @@ Material 1
   Mesh Poisson Ratio          = Real 0.3
 
   Cauchy       		      = Logical True
+
+ ! Bedrock Conditions
+  Min Zs Bottom  = Variable Coordinate 1
+    Real Procedure "UserFunction/bedrock" "bedrock"
+  Max Zs Bottom  = Real +1.0e10
 End
  
 
@@ -150,7 +191,53 @@ Solver 1
    Nonlinear System Relaxation Factor       = $2/3
 End
 
+
 Solver 2
+   Exec Solver      = Always
+   Procedure        = "FreeSurfaceSolver" "FreeSurfaceSolver"
+   Equation         = "Free Surface"
+!   Before Linsolve  = "EliminateDirichlet" "EliminateDirichlet"
+
+   Variable                                = String Zs
+   Variable DOFs                           =  1
+
+   Linear System Solver                    = Iterative
+   Linear System Max Iterations            = 1500
+   Linear System Iterative Method          = BiCGStab
+   Linear System Preconditioning           = ILU0
+   Linear System Convergence Tolerance     = Real 1.0e-5
+   Linear System Abort Not Converged       = False
+   Linear System Residual Output           = 1
+
+   Nonlinear System Max Iterations         = 100
+   Nonlinear System Convergence Tolerance  = 1.0e-6
+   Nonlinear System Relaxation Factor      = 1.00
+
+   Steady State Convergence Tolerance      = 1.0e-03
+   Stabilization Method                    = Bubbles    
+   Apply Dirichlet                         = Logical True
+!How much the free surface is relaxed
+!   Relaxation Factor                       = Real 0.90 
+
+   Exported Variable 1                     = String "Zs Residual"
+   Exported Variable 1 DOFs                = 1
+   Exported Variable 2                     = "RefZs"   
+End
+
+
+Solver 3
+   Exec Solver       = Always
+   Equation          = "Mesh Update"
+   Variable 	     = "Mesh Update"
+   Variable DOFs     = 2
+
+   Linear System Solver               = "Direct"
+   Linear System Direct Method        = umfpack
+   Steady State Convergence Tolerance = 1.0e-04
+End
+
+
+Solver 4
    Exec Solver       = Always
    Equation          = Sij
    Procedure         = "ElmerIceSolvers" "ComputeDevStress"
@@ -162,8 +249,6 @@ Solver 2
    Variable DOFs     	    = 1
    Exported Variable 1 	    = "Stress"
    Exported Variable 1 DOFs = 4
-   Cauchy                   = Logical True
-
 
    Linear System Solver        = Direct         
    Linear System Direct Method = umfpack
@@ -173,22 +258,22 @@ Solver 2
 End
 
 
-Solver 3
+Solver 5
    Exec Solver       = "Always"
    Equation          = SaveLine
    Procedure         = File "SaveData" "SaveLine"
 
-   Filename          = "$Fname$/$OutputFname$_surf_0001.dat"
-   File Append       = Logical False
+   Filename          = "$Fname$/surf_trans$OutputFname$_0001.dat"
+   File Append       = Logical True
 End
 
 
-Solver 4
+Solver 6
    Exec Solver       = "Always"
    Equation          = "result output"
    Procedure         = File "ResultOutputSolve" "ResultOutputSolver"
 
-   Output File Name  = "$OutputFname$_"
+   Output File Name  = "trans$OutputFname$_"
    Output Format     = vtu
    Save Geometry Ids = Logical True
 End
@@ -198,9 +283,14 @@ End
 !----------------------------------------------!
 
 Equation 1
-  Active Solvers(4) = 1 2 3 4
+  Active Solvers(5) = 1 3 4 5 6
 End
 
+Equation 2
+  Active Solvers(1) = 2
+  Convection        = Computed
+  Flow Solution Name = String "Flow Solution"
+End
 
 !----------------------------------------------!
 !-------------Boundary-Condition---------------!
@@ -212,6 +302,8 @@ Boundary Condition 1
   Target Boundaries(1) = 3
   Save Line  	       = Logical False
 
+  Mesh Update 1        = Real 0.0
+  Mesh Update 2        = Real 0.0
   Pressure 1  	       = Real $OverburdenPressure*sin(angle)
   Pressure 2  	       = Real $OverburdenPressure*cos(angle)
 End
@@ -221,15 +313,19 @@ End
 Boundary Condition 2
   Name                 = "BottomSurface"
   Target Boundaries(1) = 1
+  Body ID 	       = 2
   Save Line 	       = Logical True
 
-!  External Pressure = Variable Time, Zs
-!   Real MATC "Pwater(tx)"  
-  External Pressure    = 0.0 !Create a external pressure at the bed BC
+  External Pressure = Variable Zs
+   Real MATC "Pwater(tx)"  
 
- ! Velocity 1           = 0
- ! Velocity 1 Condition = Variable Coordinate 2
- !    Real MATC "-(tx - 1.0E-09)"
+!  Velocity 1           = 0
+!  Velocity 1 Condition = Variable Coordinate 2
+!     Real MATC "-(tx - 1.0E-09)"
+
+  Mesh Update 1        = Real 0.0
+  Mesh Update 2        = Variable RefZs,  Zs
+     Real MATC "tx(1) - tx(0)"
 
   Velocity 2           = 0
   Velocity 2 Condition = Variable Coordinate 2

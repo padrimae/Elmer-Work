@@ -4,7 +4,7 @@ echo on
 
 ! Mesh, Output Filename
 $Fname       = "channel_nye"
-$OutputFname= "_""Nye_freeslip_n1_par""_"
+$OutputFname = "Nye_freeslip_n1"
 
 ! Constants
 $yearinsec  = 365.25*24*60*60

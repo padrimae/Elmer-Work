@@ -11,17 +11,17 @@ f=0.05 # Mesh fine (channel)
 echo "Parameters: height=$h, radius=$r"
 
 # Replace
-sed -i 's/.*h      =.*/h      = '$h';/' Mesh/channel_ld_meshdiff.geo
-sed -i 's/.*l      =.*/l      = '$h';/' Mesh/channel_ld_meshdiff.geo
-sed -i 's/.*a      =.*/a      = '$a';/' Mesh/channel_ld_meshdiff.geo
-sed -i 's/.*coarse1=.*/coarse1= '$c';/' Mesh/channel_ld_meshdiff.geo
-sed -i 's/.*coarse2=.*/coarse2= '$c';/' Mesh/channel_ld_meshdiff.geo
-sed -i 's/.*fine1  =.*/fine1  = '$f';/' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*h      =.*/h      = '$h';/g' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*l      =.*/l      = '$h';/g' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*r      =.*/r      = '$r';/g' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*coarse1=.*/coarse1= '$c';/g' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*coarse2=.*/coarse2= '$c';/g' Mesh/channel_ld_meshdiff.geo
+sed -i '' -e 's/.*fine1  =.*/fine1  = '$f';/g' Mesh/channel_ld_meshdiff.geo
 
 # Filename
 path="Mesh"
-fname_geo="channel_ld_h$h""_a$a""_c$c.geo"
-fname_msh="channel_ld_h$h""_a$a""_c$c.msh"
+fname_geo="channel_ld_h$h""_r$r""_c$c.geo"
+fname_msh="channel_ld_h$h""_r$r""_c$c.msh"
 echo "$fname_geo"
 echo "$fname_msh"
 
@@ -44,20 +44,25 @@ rm -fv ./$fname_msh
 #-----    SOLVE    -----
 #-----------------------
 # Run filename to edit
-run1=Nye_freeslip_n1.sif
-run3=Nye_freeslip_n3.sif
+run1=trans_freeslip_n3_pwctt.sif
+run3=trans_freeslip_n3_pwsin.sif
 
 # Change mesh name in sif file
-sed -i 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/' Code/$run1
-sed -i 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/' Code/$run3
+sed -i '' -e 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run1
+sed -i '' -e 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run3
 
 # Log filenames
-fname_log1="RunLogs/tmp_${run1}.log"
-fname_log3="RunLogs/tmp_${run3}.log"
+fname_log1="RunLogs/tmp_$run1.log"
+fname_log3="RunLogs/tmp_$run3.log"
 
 # Solve Runs
+echo
+echo "RUNs:"
+echo $run1
 ElmerSolver Code/$run1 > $fname_log1
-ElmerSolver Code/$run2 > $fname_log1
+echo $run3
+ElmerSolver Code/$run3 > $fname_log3
+
 
 #-----------------------
 #-----   OUTPUT    -----

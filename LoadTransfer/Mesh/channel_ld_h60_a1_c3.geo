@@ -1,16 +1,17 @@
 // the points
+a      = 1;
 l      = 60;
 h      = 60;
-coarse = 2;
-fine1  = 0.01;
-fine2  = 1;
-Point(1) = {0,   0, 0, fine1};
-Point(2) = {0.5, 0, 0, fine1};
-Point(3) = {-0.5,0, 0, fine1};
-Point(4) = {l,   0, 0, fine2};
-Point(5) = {-l,  0, 0, fine2};
-Point(6) = {-l,  h, 0, coarse};
-Point(7) = {l,   h, 0, coarse};
+coarse1= 3;
+coarse2= 3;
+fine1  = 0.05;
+Point(1) = { 0, 0, 0, fine1};
+Point(2) = { a, 0, 0, fine1};
+Point(3) = {-a, 0, 0, fine1};
+Point(4) = { l, 0, 0, coarse1};
+Point(5) = {-l, 0, 0, coarse1};
+Point(6) = {-l, h, 0, coarse2};
+Point(7) = { l, h, 0, coarse2};
 // the lines confining your domain
 Line(1) = {5, 3};
 Line(2) = {2, 4};

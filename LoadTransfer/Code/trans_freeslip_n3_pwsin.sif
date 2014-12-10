@@ -3,10 +3,10 @@ echo on
  
 
 ! Time, Mesh, Filename Parameters
-$dt         = 1.0/(365.25*24)
-$MaxIter    = "120" !"432" !144 - 288 - 432
-$Fname       = "channel_ld_h45_a1_c3"
-$OutputFname= "_""trans_freeslip_n3_pwsin""_"
+$dt          = 1.0/(365.25*24)
+$MaxIter     = "120" !"432" !144 - 288 - 432
+$Fname       = "channel_ld_h60_r1_c3"
+$OutputFname = "trans_freeslip_n3_pwsin"
 
 ! Constants
 $yearinsec  = 365.25*24*60*60
@@ -62,9 +62,8 @@ Simulation
 
   Output Intervals                = 1
   Output File                     = "trans$OutputFname$.result"
-  Post File                       = "trans$OutputFname$.ep"  
 
-  Restart File = "trans_trans_freeslip_n3_pwctt_.result"
+  Restart File = "trans_freeslip_n3_pwctt.result"
   Restart Position =  0
   Restart Time = Real 0.0
   
@@ -268,7 +267,7 @@ Solver 5
    Equation          = SaveLine
    Procedure         = File "SaveData" "SaveLine"
 
-   Filename          = "$Fname$/surf_trans$OutputFname$_0001.dat"
+   Filename          = "$Fname$/$OutputFname$_surf_0001.dat"
    File Append       = Logical True
 End
 
@@ -278,7 +277,7 @@ Solver 6
    Equation          = "result output"
    Procedure         = File "ResultOutputSolve" "ResultOutputSolver"
 
-   Output File Name  = "trans$OutputFname$_"
+   Output File Name  = "$OutputFname$_"
    Output Format     = vtu
    Save Geometry Ids = Logical True
 End

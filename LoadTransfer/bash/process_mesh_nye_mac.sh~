@@ -1,11 +1,14 @@
-#emacs process_mesh_nye.sh
+#
 
+#-----------------------
+#-----    MESH     -----
+#-----------------------
 # Change mesh width
 h=60
 
 # Change mesh width
-sed -i 's/.*h      =.*/h      = 45;/' channel_nye.geo 
-sed -i 's/.*l      =.*/l      = 45;/' channel_nye.geo 
+sed -i '' -e 's/.*h      =.*/h      = '$h';/g' Mesh/channel_nye.geo 
+sed -i '' -e 's/.*l      =.*/l      = '$h';/g' Mesh/channel_nye.geo 
 
 # Change gmsh file and produce mesh
 gmsh -1 -2 Mesh/channel_nye.geo
@@ -19,13 +22,16 @@ ElmerGrid 14 2 channel_nye.msh -autoclean -order 1.0 0.1 0.01
 # Clean
 rm -fv channel_nye.msh 
 
+#-----------------------
+#-----    SOLVE    -----
+#-----------------------
 # Run filename to edit
 run1=Nye_freeslip_n1.sif
 run3=Nye_freeslip_n3.sif
 
 # Change mesh name in sif file
-sed -i 's/.*$Fname       =.*/$Fname       = "channel_nye"/' Code/$run1
-sed -i 's/.*$Fname       =.*/$Fname       = "channel_nye"/' Code/$run3
+sed -i '' -e 's/.*$Fname       =.*/$Fname       = "channel_nye"/g' Code/$run1
+sed -i '' -e 's/.*$Fname       =.*/$Fname       = "channel_nye"/g' Code/$run3
 
 # Log filenames
 fname_log1="RunLogs/tmp_log_n1.log"
@@ -35,10 +41,14 @@ fname_log3="RunLogs/tmp_log_n3.log"
 ElmerSolver Code/$run1 > $fname_log1
 ElmerSolver Code/$run3 > $fname_log3
 
+
 # Filename output
+echo
+echo "OUTPUT:"
 DATE=`date +%Y-%m-%d_%H:%M:%S`
 fname_out1=`echo Runlogs/"$DATE"_${run1%.*}.log`
 fname_out3=`echo Runlogs/"$DATE"_${run3%.*}.log`
+
 
 # Export Result from logs
 for f_in in $fname_log1 $fname_log3;
@@ -49,7 +59,8 @@ do
     else 
 	fname_out=$fname_out3
     fi
-    echo "OUTPUT:"
+    
+    # Echo output
     echo $fname_out
     echo
 
@@ -65,3 +76,6 @@ done
 
 # Copy to post-processing directory
 #cp channel_nye/surf_trans* ../../host/LoadTransfer/
+
+
+

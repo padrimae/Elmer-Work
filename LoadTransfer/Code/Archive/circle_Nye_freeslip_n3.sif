@@ -231,6 +231,9 @@ Boundary Condition 2
  ! Velocity 1 Condition = Variable Coordinate 2
  !    Real MATC "-(tx - 1.0E-09)"
 
+  Slip Coefficient 1 = Variable Coordinate 2
+     Real MATC "(tx<10.0E-9)*100"
+
   Velocity 2           = 0
   Velocity 2 Condition = Variable Coordinate 2
      Real MATC "-(tx - 1.0E-09)"

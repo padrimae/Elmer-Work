@@ -1,5 +1,5 @@
 // the points
-r      = 2.0;
+r      = 0.5;
 l      = 70;
 h      = 70;
 coarse1= 3;

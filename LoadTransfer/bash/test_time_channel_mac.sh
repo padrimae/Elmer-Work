@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#for r in 0.10 0.25 0.5 1.0 2.0
-#do
+
 #-----------------------
 #-----    MESH     -----
 #-----------------------
@@ -58,9 +57,20 @@ rm -fv ./$fname_msh
 run1=trans_freeslip_n3_pwctt.sif
 run3=trans_freeslip_n3_pwsin.sif
 
+# Change timestep
+hr="*24"
+min=""
+sec=""
+sed -i '' -e 's/.*$dt.*/$dt          = 1.0\/(365.25'$hr$min$sec')/g' Code/$run1
+sed -i '' -e 's/.*$MaxIter.*/$MaxIter     = days'$hr$min$sec'/g'     Code/$run3
+
 # Change mesh name in sif file
-sed -i '' -e 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run1
-sed -i '' -e 's/.*$Fname       =.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run3
+sed -i '' -e 's/.*$Fname.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run1
+sed -i '' -e 's/.*$Fname.*/$Fname       = "'${fname_msh%.*}'"/g' Code/$run3
+
+# Change Ice thickness
+sed -i '' -e 's/.*$Hice.*/$Hice = '$h'/g' Code/$run1
+sed -i '' -e 's/.*$Hice.*/$Hice = '$h'/g' Code/$run3
 
 # Log filenames
 fname_log1="RunLogs/tmp_$run1.log"
@@ -102,6 +112,9 @@ do
     # Output
     grep "Reading Model:" $f_in > $f_out
     grep "Mesh DB" $f_in >> $f_out
+    grep "Timestep Intervals" $f_in >> $f_out
+    grep "Timestep Sizes" $f_in >> $f_out
+    grep "Glen Exponent" $f_in >> $f_out
     grep "Output File Name" $f_in >> $f_out 
     grep "MAIN:  Steady state iteration:" $f_in >> $f_out
     grep "ComputeChange: NS (ITER=1)" $f_in | grep "navier-stokes" >> $f_out
